@@ -1,32 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
+// app/api/stripe/route.ts
+import { NextApiRequest, NextApiResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-07-30.basil',
 });
 
-export async function POST(req: NextRequest) {
-  const sig = req.headers.get('stripe-signature');
-  if (!sig) {
-    return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
-  }
+export async function handler(req: NextApiRequest) {
+  console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY);
+  console.log('STRIPE_WEBHOOK_SECRET:', process.env.STRIPE_WEBHOOK_SECRET);
 
+  const sig = req.headers.get('stripe-signature');
   const body = await req.text();
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+    return new NextApiResponse({ status: 400, body: { error: 'Invalid signature' } });
   }
 
   if (event.type === 'payment_intent.succeeded') {
-    // TODO : traiter le paiement
+    // Handle payment intent succeeded event
   }
 
-  return NextResponse.json({ received: true });
+  return new NextApiResponse({ status: 200, body: { received: true } });
 }
