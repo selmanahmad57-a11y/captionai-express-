@@ -6,9 +6,11 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  // ajoute ici toutes les routes que tu veux laisser libres
 ]);
 
 export default clerkMiddleware((auth, req) => {
+  // Protège toutes les autres routes
   if (!isPublicRoute(req)) auth().protect();
 });
 
